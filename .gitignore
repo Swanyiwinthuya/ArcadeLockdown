@@ -107,3 +107,6 @@ InitTestScene*.unity*
 
 # macOS
 .DS_Store
+
+# WebGL build leftovers
+/[Dd]ata/

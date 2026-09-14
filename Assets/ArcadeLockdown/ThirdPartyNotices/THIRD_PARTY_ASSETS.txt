@@ -21,4 +21,10 @@ for clarity and to help students learn where the files came from.
    License: Creative Commons CC0 1.0
    Included: 1K JPG color, normal and ambient-occlusion maps used by the game
 
+4. Microsoft Rocketbox Avatar Library
+   Source: https://github.com/microsoft/Microsoft-Rocketbox
+   License: MIT (see MICROSOFT_ROCKETBOX_LICENSE.md beside this notice)
+   Included: Male_Adult_01 (Leo) and Female_Adult_01 (Maya) FBX avatars with
+   body/head colour and normal maps and opacity maps, converted from TGA to PNG
+
 CC0 license text: https://creativecommons.org/publicdomain/zero/1.0/

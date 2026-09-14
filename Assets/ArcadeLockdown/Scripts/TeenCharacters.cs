@@ -22,6 +22,8 @@ namespace ArcadeLockdown
 
         public static TeenCharacterAnimator CreateTeenCharacter(Transform visual, bool female)
         {
+            TeenCharacterAnimator realistic=CreateRealisticCharacter(visual,female);
+            if(realistic!=null)return realistic;
             string name=female?"Maya":"Leo";
             GameObject prefab=Resources.Load<GameObject>("Characters/Universal/"+name);
             if(prefab==null) throw new System.InvalidOperationException("Missing v5 character: "+name+". Import all package assets.");
@@ -90,6 +92,150 @@ namespace ArcadeLockdown
             TeenCharacterAnimator driver=visual.gameObject.AddComponent<TeenCharacterAnimator>();driver.animator=animator;
             driver.SetMovement(0,false);
             return driver;
+        }
+
+        // Microsoft Rocketbox (MIT) avatars use a 3ds Max Biped rig: map it onto Unity's humanoid bones.
+        private static readonly string[,] BipedHumanBones=
+        {
+            {"Hips","Pelvis"},{"Spine","Spine"},{"Chest","Spine1"},{"UpperChest","Spine2"},{"Neck","Neck"},{"Head","Head"},
+            {"LeftShoulder","L Clavicle"},{"LeftUpperArm","L UpperArm"},{"LeftLowerArm","L Forearm"},{"LeftHand","L Hand"},
+            {"RightShoulder","R Clavicle"},{"RightUpperArm","R UpperArm"},{"RightLowerArm","R Forearm"},{"RightHand","R Hand"},
+            {"LeftUpperLeg","L Thigh"},{"LeftLowerLeg","L Calf"},{"LeftFoot","L Foot"},{"LeftToes","L Toe0"},
+            {"RightUpperLeg","R Thigh"},{"RightLowerLeg","R Calf"},{"RightFoot","R Foot"},{"RightToes","R Toe0"}
+        };
+
+        /// <summary>Builds Leo/Maya from the realistic Rocketbox avatars; returns null to fall back to the stylised characters.</summary>
+        private static TeenCharacterAnimator CreateRealisticCharacter(Transform visual,bool female)
+        {
+            string name=female?"Maya":"Leo";
+            GameObject prefab=Resources.Load<GameObject>("Characters/Realistic/"+(female?"Female_Adult_01":"Male_Adult_01"));
+            RuntimeAnimatorController controller=Resources.Load<RuntimeAnimatorController>("Characters/Universal/TeenLocomotion");
+            if(prefab==null||controller==null)return null;
+
+            // A pivot carries facing, scale and floor offset so the animated root stays at identity.
+            Transform pivot=new GameObject(name+" - realistic pivot").transform;
+            pivot.SetParent(visual,false);
+            GameObject model=Object.Instantiate(prefab,pivot);
+            model.name=name+" - Rocketbox humanoid";
+            model.transform.localPosition=Vector3.zero;model.transform.localRotation=Quaternion.identity;model.transform.localScale=Vector3.one;
+            Transform[] bones=model.GetComponentsInChildren<Transform>();
+            Transform Bone(string bone)=>bones.FirstOrDefault(t=>t.name=="Bip01 "+bone);
+            Transform leftArm=Bone("L UpperArm"),rightArm=Bone("R UpperArm");
+            if(leftArm==null||rightArm==null||Bone("Pelvis")==null){DestroyAny(pivot.gameObject);return null;}
+
+            // Turn the rest pose so the locomotion clips play facing the controller's movement
+            // (the opposite yaw made walking forward look like a moonwalk).
+            Vector3 left=leftArm.position-rightArm.position;
+            Vector3 facing=Vector3.Cross(left,Vector3.up);
+            facing.y=0f;
+            if(facing.sqrMagnitude>1e-6f)pivot.Rotate(Vector3.up,Vector3.SignedAngle(facing,Vector3.ProjectOnPlane(visual.forward,Vector3.up),Vector3.up),Space.World);
+
+            // Humanoid retargeting expects a T-pose reference: arms straight out, legs straight down.
+            left=(leftArm.position-rightArm.position).normalized;
+            foreach(string side in new[]{"L","R"})
+            {
+                Vector3 outward=side=="L"?left:-left;
+                AlignBone(Bone(side+" UpperArm"),Bone(side+" Forearm"),outward);
+                AlignBone(Bone(side+" Forearm"),Bone(side+" Hand"),outward);
+                AlignBone(Bone(side+" Thigh"),Bone(side+" Calf"),Vector3.down);
+                AlignBone(Bone(side+" Calf"),Bone(side+" Foot"),Vector3.down);
+            }
+
+            var human=new List<HumanBone>();
+            void Map(string humanName,string bipedName)
+            {
+                Transform bone=Bone(bipedName);
+                if(bone!=null)human.Add(new HumanBone{humanName=humanName,boneName=bone.name,limit=new HumanLimit{useDefaultValues=true}});
+            }
+            for(int i=0;i<BipedHumanBones.GetLength(0);i++)Map(BipedHumanBones[i,0],BipedHumanBones[i,1]);
+            string[] fingers={"Thumb","Index","Middle","Ring","Little"};
+            string[] segments={"Proximal","Intermediate","Distal"};
+            foreach(string side in new[]{"Left","Right"})
+                for(int f=0;f<fingers.Length;f++)
+                    for(int s=0;s<segments.Length;s++)
+                        Map(side+" "+fingers[f]+" "+segments[s],side[0]+" Finger"+f+(s==0?"":s.ToString()));
+            HumanDescription description=new HumanDescription
+            {
+                human=human.ToArray(),
+                skeleton=bones.Select(t=>new SkeletonBone{name=t.name,position=t.localPosition,rotation=t.localRotation,scale=t.localScale}).ToArray(),
+                upperArmTwist=.5f,lowerArmTwist=.5f,upperLegTwist=.5f,lowerLegTwist=.5f,armStretch=.05f,legStretch=.05f,feetSpacing=0f,hasTranslationDoF=false
+            };
+            Avatar avatar=AvatarBuilder.BuildHumanAvatar(model,description);
+            if(avatar==null||!avatar.isValid||!avatar.isHuman)
+            {
+                Debug.LogWarning("Rocketbox humanoid avatar invalid for "+name+"; using the stylised character.");
+                DestroyAny(pivot.gameObject);return null;
+            }
+            avatar.name=name+" Rocketbox avatar";
+
+            string prefix=female?"f001":"m002";
+            foreach(SkinnedMeshRenderer skin in model.GetComponentsInChildren<SkinnedMeshRenderer>())
+            {
+                Material[] mats=skin.sharedMaterials;
+                for(int i=0;i<mats.Length;i++)
+                {
+                    string lower=mats[i]==null?string.Empty:mats[i].name.ToLowerInvariant();
+                    string part=lower.Contains("head")?"head":lower.Contains("opacity")?"opacity":lower.Contains("body")?"body":i==1?"head":i==2?"opacity":"body";
+                    mats[i]=RealisticMaterial(prefix,part);
+                }
+                skin.sharedMaterials=mats;
+                skin.updateWhenOffscreen=true;
+                skin.quality=SkinQuality.Bone4;
+            }
+
+            Animator animator=model.GetComponent<Animator>();
+            if(animator==null)animator=model.AddComponent<Animator>();
+            animator.avatar=avatar;
+            animator.runtimeAnimatorController=controller;
+            animator.applyRootMotion=false;
+            animator.cullingMode=AnimatorCullingMode.AlwaysAnimate;
+            animator.Rebind();animator.Update(0);
+
+            Bounds bounds=CharacterMeasurements.Measure(visual);
+            if(bounds.size.y>.1f)
+            {
+                pivot.localScale=Vector3.one*((female?1.68f:1.78f)/bounds.size.y);
+                bounds=CharacterMeasurements.Measure(visual);
+                pivot.localPosition=new Vector3(0f,-bounds.min.y,0f);
+            }
+            TeenCharacterAnimator driver=visual.gameObject.AddComponent<TeenCharacterAnimator>();driver.animator=animator;
+            driver.SetMovement(0,false);
+            return driver;
+        }
+
+        private static void AlignBone(Transform bone,Transform child,Vector3 direction)
+        {
+            if(bone==null||child==null)return;
+            bone.rotation=Quaternion.FromToRotation(child.position-bone.position,direction)*bone.rotation;
+        }
+
+        private static Material RealisticMaterial(string prefix,string part)
+        {
+            bool opacity=part=="opacity";
+            // Template assets keep the alpha-clip / normal-map shader variants in player builds.
+            Material template=Resources.Load<Material>("Characters/Realistic/"+(opacity?"RocketboxCutout":"RocketboxSkin"));
+            Material material=template!=null?new Material(template):MakeMaterial(prefix+" "+part,Color.white,false,0,part=="head"?.38f:.3f);
+            material.name=prefix+" "+part+" (Rocketbox)";
+            Texture2D color=Resources.Load<Texture2D>("Characters/Realistic/"+prefix+"_"+(opacity?"opacity_color":part+"_color"));
+            if(color!=null)SetMaterialTexture(material,"_BaseMap","_MainTex",color);
+            Texture2D normal=opacity?null:Resources.Load<Texture2D>("Characters/Realistic/"+prefix+"_"+part+"_normal");
+            if(normal!=null&&material.HasProperty("_BumpMap")){material.SetTexture("_BumpMap",normal);material.SetFloat("_BumpScale",1f);material.EnableKeyword("_NORMALMAP");}
+            if(material.HasProperty("_Smoothness"))material.SetFloat("_Smoothness",part=="head"?.38f:.3f);
+            if(opacity)
+            {
+                // Hair, brows and lashes are alpha-cut cards seen from both sides.
+                if(material.HasProperty("_AlphaClip"))material.SetFloat("_AlphaClip",1f);
+                if(material.HasProperty("_Cutoff"))material.SetFloat("_Cutoff",.35f);
+                if(material.HasProperty("_Cull"))material.SetFloat("_Cull",0f);
+                material.EnableKeyword("_ALPHATEST_ON");
+                material.renderQueue=(int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+            }
+            return material;
+        }
+
+        private static void DestroyAny(Object target)
+        {
+            if(Application.isPlaying)Object.Destroy(target);else Object.DestroyImmediate(target);
         }
 
         private static void AddCasualClothing(SkinnedMeshRenderer body,Transform root,Bounds worldBounds,bool female)
