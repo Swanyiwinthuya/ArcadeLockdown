@@ -1,0 +1,21 @@
+ARCADE LOCKDOWN v5 — SOURCES AND MODIFICATIONS
+
+Quaternius Universal Base Characters [Standard], CC0
+https://quaternius.com/packs/universalbasecharacters.html
+https://quaternius.itch.io/universal-base-characters
+Official free Standard archive downloaded 2026-09-07.
+Included source FBXs: Superhero_Male_FullBody (Leo.fbx), Superhero_Female_FullBody (Maya.fbx), Hair_SimpleParted (LeoHair.fbx), Hair_Long (MayaHair.fbx).
+Included textures: light male/female skin, brown eyes, hair 1/2 base colors.
+License: UniversalCharacters-License.txt.
+Modifications: slimmer scaling, human-size normalization, original skinned casual clothing and shoes, Unity materials, hair alignment and humanoid animation setup. These are late-teen-inspired adaptations, not the paid Teen source models. No paid files were downloaded or included.
+
+Quaternius Universal Animation Library [Standard], CC0
+https://opengameart.org/content/universal-animation-library
+https://quaternius.com/packs/universalanimationlibrary.html
+Official creator-uploaded Standard archive downloaded 2026-09-07.
+Source: AnimationLibrary_Unity_Standard.fbx (Locomotion.fbx).
+Active clips: Idle_Loop, Walk_Loop, Sprint_Loop, copied as looping humanoid .anim assets with an original Unity controller.
+License: UniversalAnimations-License.txt.
+
+Original v5 code-modeled office furniture, selection/timer UI, route definitions, garment meshes, portraits rendered from game assets, and tests are included in full.
+Existing v4 sources remain documented in V4_FREE_ASSET_SOURCES.txt: Poly Haven, ambientCG, Kenney and BenjaTheMaker. Existing Quaternius Animated Men model remains as the original menu/background fallback. No paid asset or external plugin is needed at runtime.

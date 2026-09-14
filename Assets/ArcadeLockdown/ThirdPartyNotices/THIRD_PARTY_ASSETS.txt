@@ -1,0 +1,24 @@
+ARCADE LOCKDOWN - THIRD-PARTY ASSET NOTICE
+
+All third-party files included in this package are CC0/public-domain assets.
+Attribution is not required, but the creators and source pages are listed here
+for clarity and to help students learn where the files came from.
+
+1. Kenney - Mini Arcade
+   Source: https://kenney.nl/assets/mini-arcade
+   License: Creative Commons CC0 1.0
+   Included: selected FBX arcade/attraction models and colormap.png
+   The original License.txt is included beside this notice.
+
+2. Quaternius - Animated Men Pack
+   Source: https://quaternius.com/packs/animatedmen.html
+   License: Creative Commons CC0 1.0
+   Included: Smooth_Male_Casual.fbx with embedded skeletal animation clips
+
+3. ambientCG
+   Source assets: Carpet012 and Concrete034
+   License information: https://docs.ambientcg.com/license/
+   License: Creative Commons CC0 1.0
+   Included: 1K JPG color, normal and ambient-occlusion maps used by the game
+
+CC0 license text: https://creativecommons.org/publicdomain/zero/1.0/

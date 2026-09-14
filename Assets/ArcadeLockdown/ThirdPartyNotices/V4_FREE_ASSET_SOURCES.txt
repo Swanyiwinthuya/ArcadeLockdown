@@ -1,0 +1,37 @@
+ARCADE LOCKDOWN v4 — FREE RESOURCE SOURCES
+
+Poly Haven — CC0
+https://polyhaven.com/license
+https://polyhaven.com/a/painted_plaster_wall
+https://polyhaven.com/a/wood_cabinet_worn_long
+https://polyhaven.com/a/metal_plate
+Included: 1K diffuse, OpenGL normal, roughness and ambient occlusion maps
+for all three surfaces. Downloads were checked against the source API's
+MD5 hashes. The metallic/smoothness PNGs are conversions for Unity from
+these CC0 roughness maps.
+
+BenjaTheMaker — Arcade Machine Pack — CC0
+https://opengameart.org/content/arcade-machine-pack
+Included: short/tall stool FBX, chair texture, steering wheel FBX/texture.
+The short stool is used in the arcade. Other files are optional source models.
+Credit: BenjaTheMaker (voluntary credit).
+
+Quaternius — Animated Men — CC0
+https://quaternius.com/packs/animatedmen.html
+Included from v3: Smooth_Male_Casual.fbx with embedded animation clips.
+
+Kenney — Mini Arcade — CC0
+https://kenney.nl/assets/mini-arcade
+Included from v3: FBX source models and colormap. These remain optional
+models; v4's visible machine bodies are newly modeled in the included code.
+
+ambientCG — CC0
+https://docs.ambientcg.com/license/
+https://ambientcg.com/view?id=Carpet012
+https://ambientcg.com/view?id=Concrete034
+Included from v3: carpet and concrete maps. Carpet remains in the rooms.
+
+ORIGINAL PROJECT WORK
+V4 cabinet geometry, arcade screen animations, claw/cage/hockey/wheel/drink
+machine details, room construction, puzzle logic, camera and pickup code
+are included in full. No paid asset or plugin is required.
