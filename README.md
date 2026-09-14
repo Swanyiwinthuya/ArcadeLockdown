@@ -1,8 +1,11 @@
 # Arcade Lockdown
+
 Team Members
 Arkar Phyo ID -6520072
 Swan Yi Win Thu Ya ID-6540200
 Zwe Khant Lin ID-6632710
+
+
 **Explore the arcade. Follow the clues. Escape before time runs out.**
 
 Arcade Lockdown is a single-player, third-person escape-room game set inside a retro arcade. Players explore connected rooms, inspect objects, collect useful items and solve puzzles to unlock the exit within **15 minutes**.
